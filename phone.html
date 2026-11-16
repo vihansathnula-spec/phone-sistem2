@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computer & Electronics POS System Ultimate Pro</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Segoe UI',Arial,sans-serif;background:#f1f5f9;color:#1e293b}
+header{background:#0f172a;color:white;padding:15px 22px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+header h2{margin:0;font-size:20px}
+header small{color:#94a3b8}
+.header-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.role-select{background:#1e293b;color:white;border:1px solid #334155;padding:7px 10px;border-radius:6px;font-weight:bold;cursor:pointer;margin:0;width:auto}
+.bt-btn{background:#0284c7;color:white;border:0;padding:8px 12px;border-radius:6px;font-weight:bold;cursor:pointer;font-size:13px}
+.bt-btn.connected{background:#16a34a}
+nav{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 18px;background:white;box-shadow:0 2px 8px #0001}
+nav button{border:0;background:#e2e8f0;padding:9px 12px;border-radius:7px;cursor:pointer;font-weight:600;color:#334155;font-size:13px;transition:0.2s}
+nav button:hover,nav button.active{background:#2563eb;color:white}
+nav button.terminal-btn{margin-left:auto;background:#16a34a;color:white;font-size:14px;padding:11px 18px;border-radius:8px;box-shadow:0 3px 10px #16a34a44}
+nav button.terminal-btn:hover,nav button.terminal-btn.active{background:#15803d;color:white}
+main{padding:20px;max-width:1550px;margin:auto}
+.page{display:none}
+.page.active{display:block}
+h2{margin-top:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+.card{background:white;padding:18px;border-radius:12px;box-shadow:0 2px 8px #0001}
+.card p{color:#64748b;margin:0 0 6px;font-size:13px}
+.card h2{margin:0;color:#2563eb;font-size:24px}
+.panel{background:white;padding:18px;border-radius:12px;box-shadow:0 2px 8px #0001;margin-bottom:18px}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid #cbd5e1;border-radius:7px;margin:4px 0 11px;font-size:13px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#2563eb}
+textarea{min-height:65px}
+label{font-weight:600;font-size:12px;color:#334155}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+button{cursor:pointer}
+.btn{border:0;padding:9px 14px;border-radius:7px;font-weight:600;margin:2px;font-size:13px}
+.primary{background:#2563eb;color:white}
+.success{background:#16a34a;color:white}
+.danger{background:#dc2626;color:white}
+.warning{background:#f59e0b;color:white}
+.secondary{background:#64748b;color:white}
+.dark{background:#0f172a;color:white}
+table{width:100%;border-collapse:collapse;min-width:600px}
+th,td{padding:10px;border-bottom:1px solid #e2e8f0;text-align:left;font-size:13px}
+th{background:#f8fafc;color:#475569}
+.table-wrap{overflow-x:auto}
+.tag{padding:4px 9px;border-radius:20px;background:#dbeafe;color:#1d4ed8;font-size:11px;font-weight:bold}
+.tag-valid{background:#dcfce7;color:#15803d}
+.tag-expired{background:#fee2e2;color:#b91c1c}
+.low{color:#dc2626;font-weight:bold}
+.cart-total{font-size:21px;font-weight:bold;text-align:right;margin:12px 0;color:#0f172a}
+.alert{padding:11px;background:#fff7ed;border-left:4px solid #f59e0b;margin:8px 0;border-radius:5px;font-size:13px;display:flex;align-items:center;justify-content:space-between}
+.terminal-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.scanner-box{background:#eff6ff;border:2px dashed #3b82f6;padding:12px;border-radius:10px;margin-bottom:14px}
+.scanner-box input{margin:4px 0 0;background:white;font-size:15px;font-weight:bold}
+.barcode-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-top:14px}
+.barcode-card{border:1px solid #cbd5e1;padding:10px;text-align:center;border-radius:8px;background:white}
+.invoice{display:none}
+body.role-cashier .admin-only{display:none !important}
+@media(max-width:850px){
+ main{padding:10px}
+ .terminal-grid{grid-template-columns:1fr}
+ nav button.terminal-btn{margin-left:0}
+}
+@media print{
+ body *{visibility:hidden}
+ #printArea,#printArea *{visibility:visible}
+ #printArea{position:absolute;left:0;top:0;width:100%;padding:10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+ <div style="display:flex;align-items:center;gap:12px">
+  <img id="headerLogoImg" src="" style="height:40px;max-width:120px;object-fit:contain;display:none">
+  <div>
+   <h2 id="headerShopName">💻 TECH STORE POS PRO+</h2>
+   <small>Complete Retail, Quotations, Split Pay & Bluetooth POS</small>
+  </div>
+ </div>
+ <div class="header-right">
+  <button id="btConnectBtn" class="bt-btn" onclick="connectBluetoothPrinter()">🔵 Connect BT Printer</button>
+  <select id="userRole" class="role-select" onchange="changeRole()">
+   <option value="admin">🔑 Role: Admin</option>
+   <option value="cashier">👤 Role: Cashier</option>
+  </select>
+  <div id="today" style="font-size:13px;color:#cbd5e1"></div>
+ </div>
+</header>
+
+<nav>
+ <button class="active" onclick="page('dashboard',this)">Dashboard</button>
+ <button onclick="page('products',this)">Products</button>
+ <button onclick="page('suppliers',this)">Suppliers & Stock</button>
+ <button onclick="page('customers',this)">Customers & Credit</button>
+ <button onclick="page('expenses',this)">Expenses & Cash</button>
+ <button onclick="page('quotations',this)">Quotations</button>
+ <button onclick="page('barcodes',this)">Barcodes</button>
+ <button onclick="page('warranty',this)">Warranty</button>
+ <button onclick="page('history',this)">Sales History</button>
+ <button class="admin-only" onclick="page('reports',this)">Profit Reports</button>
+ <button class="admin-only" onclick="page('settings',this)">Settings & Logo</button>
+ <button class="terminal-btn" onclick="page('terminal',this)">🛒 POS TERMINAL</button>
+</nav>
+
+<main>
+
+<!-- DASHBOARD -->
+<section id="dashboard" class="page active">
+ <h2>Dashboard Overview</h2>
+ <div class="cards">
+  <div class="card"><p>Total Products</p><h2 id="totalProducts">0</h2></div>
+  <div class="card"><p>Total Sales Revenue</p><h2 id="totalSales">Rs. 0</h2></div>
+  <div class="card"><p>Customer Credit Dues</p><h2 id="totalCustomerDues" style="color:#dc2626">Rs. 0</h2></div>
+  <div class="card admin-only"><p>Total Expenses</p><h2 id="totalExpensesCard" style="color:#f59e0b">Rs. 0</h2></div>
+  <div class="card admin-only"><p>Net Profit (After Exp.)</p><h2 id="totalProfit" style="color:#16a34a">Rs. 0</h2></div>
+ </div>
+ <div class="panel">
+  <h3>⚠️ Low Stock Alerts (3 or less)</h3>
+  <div id="stockAlerts"></div>
+ </div>
+ <div class="panel">
+  <h3>Recent Sales</h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>Invoice</th><th>Customer</th><th>Payment</th><th>Date</th><th>Total</th></tr></thead>
+   <tbody id="recentSales"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" class="page">
+ <h2>Products Management</h2>
+ <div class="panel admin-only">
+  <h3>Add / Edit Product</h3>
+  <input type="hidden" id="editProductId">
+  <div class="form-grid">
+   <div><label>Product Name *</label><input id="pName" placeholder="e.g. Gaming Mouse"></div>
+   <div><label>Brand</label><input id="pBrand" placeholder="e.g. Logitech"></div>
+   <div><label>Model</label><input id="pModel" placeholder="e.g. G502"></div>
+   <div><label>Category</label><select id="pCategory"><option>Computer</option><option>Laptop</option><option>Monitor</option><option>Printer</option><option>Accessories</option><option>Networking</option><option>Electronics</option><option>Other</option></select></div>
+   <div><label>Barcode / SKU</label><input id="pSKU" placeholder="Auto-generated if empty"></div>
+   <div><label>Purchase Cost (Rs.)</label><input id="pCost" type="number" min="0"></div>
+   <div><label>Selling Price (Rs.) *</label><input id="pPrice" type="number" min="0"></div>
+   <div><label>Stock Quantity *</label><input id="pStock" type="number" min="0"></div>
+   <div><label>Warranty (Months)</label><input id="pWarranty" type="number" min="0" value="12"></div>
+  </div>
+  <label>Serial Numbers (Optional - one per line)</label>
+  <textarea id="pSerials" placeholder="SN1001&#10;SN1002"></textarea>
+  <button class="btn primary" onclick="saveProduct()">💾 Save Product</button>
+  <button class="btn secondary" onclick="clearProductForm()">Clear</button>
+ </div>
+ <div class="panel">
+  <h3>Product Inventory</h3>
+  <input id="productSearch" placeholder="Search by name, brand, model, or barcode..." oninput="renderProducts()">
+  <div class="table-wrap"><table>
+   <thead><tr><th>Name</th><th>Brand / Model</th><th>Barcode/SKU</th><th class="admin-only">Cost</th><th>Price</th><th>Stock</th><th>Warranty</th><th class="admin-only">Actions</th></tr></thead>
+   <tbody id="productTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- SUPPLIERS -->
+<section id="suppliers" class="page">
+ <h2>Suppliers & Stock Purchases</h2>
+ <div class="panel">
+  <h3>Add Supplier</h3>
+  <div class="form-grid">
+   <div><label>Supplier / Company Name *</label><input id="supName" placeholder="e.g. Metropolitan Computers"></div>
+   <div><label>Phone Number</label><input id="supPhone"></div>
+   <div><label>Address / Notes</label><input id="supAddress"></div>
+  </div>
+  <button class="btn primary" onclick="addSupplier()">Save Supplier</button>
+ </div>
+
+ <div class="panel">
+  <h3>📦 Record New Stock Purchase (GRN)</h3>
+  <div class="form-grid">
+   <div><label>Select Supplier *</label><select id="poSupplier"></select></div>
+   <div><label>Select Product *</label><select id="poProduct"></select></div>
+   <div><label>Quantity Purchased *</label><input id="poQty" type="number" min="1" value="1"></div>
+   <div><label>Unit Cost (Rs.) *</label><input id="poUnitCost" type="number" min="0"></div>
+   <div><label>Amount Paid Now (Rs.)</label><input id="poPaid" type="number" min="0" value="0"></div>
+  </div>
+  <button class="btn success" onclick="recordPurchase()">➕ Add Stock & Record Purchase</button>
+ </div>
+
+ <div class="panel">
+  <h3>Supplier List & Payable Dues</h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>Supplier</th><th>Phone</th><th>Address</th><th>Total Dues (Payable)</th><th>Actions</th></tr></thead>
+   <tbody id="supplierTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- CUSTOMERS & CREDIT -->
+<section id="customers" class="page">
+ <h2>Customers & Credit Ledger</h2>
+ <div class="panel">
+  <h3>Add Customer</h3>
+  <div class="form-grid">
+   <div><label>Customer Name *</label><input id="cName"></div>
+   <div><label>Phone Number</label><input id="cPhone"></div>
+   <div><label>Address</label><input id="cAddress"></div>
+  </div>
+  <button class="btn primary" onclick="addCustomer()">Save Customer</button>
+ </div>
+ <div class="panel">
+  <h3>Customer List & Credit Balances</h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>Name</th><th>Phone</th><th>Address</th><th>Credit Due (Rs.)</th><th>Settle Credit / Actions</th></tr></thead>
+   <tbody id="customerTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- EXPENSES & CASH DRAWER -->
+<section id="expenses" class="page">
+ <h2>Daily Expenses & Cash Drawer Closing</h2>
+ <div class="cards">
+  <div class="card"><p>Today's Cash Sales</p><h2 id="todayCashSales" style="color:#16a34a">Rs. 0</h2></div>
+  <div class="card"><p>Today's Credit Settlements</p><h2 id="todayDebtCollected" style="color:#2563eb">Rs. 0</h2></div>
+  <div class="card"><p>Today's Expenses</p><h2 id="todayExpenses" style="color:#dc2626">Rs. 0</h2></div>
+  <div class="card"><p>Expected Cash in Drawer</p><h2 id="expectedCashDrawer" style="color:#0f172a">Rs. 0</h2></div>
+ </div>
+
+ <div class="panel">
+  <h3>Record Shop Expense</h3>
+  <div class="form-grid">
+   <div><label>Expense Description *</label><input id="expDesc" placeholder="e.g. Electricity Bill, Tea, Transport"></div>
+   <div><label>Category</label><select id="expCat"><option>Utilities</option><option>Food & Tea</option><option>Transport</option><option>Salary / Advance</option><option>Maintenance</option><option>Other</option></select></div>
+   <div><label>Amount (Rs.) *</label><input id="expAmount" type="number" min="0"></div>
+  </div>
+  <button class="btn warning" onclick="addExpense()">💸 Save Expense</button>
+ </div>
+
+ <div class="panel">
+  <h3>Expense History</h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th><th class="admin-only">Action</th></tr></thead>
+   <tbody id="expenseTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- QUOTATIONS / ESTIMATES -->
+<section id="quotations" class="page">
+ <h2>Quotations & Estimates Maker</h2>
+ <div class="panel">
+  <h3>Create Quotation</h3>
+  <div class="form-grid">
+   <div><label>Customer Name</label><input id="qCustName" placeholder="Customer Name"></div>
+   <div><label>Customer Phone</label><input id="qCustPhone" placeholder="Phone Number"></div>
+   <div><label>Valid Days</label><input id="qValidDays" type="number" value="7"></div>
+  </div>
+  <button class="btn primary" onclick="saveQuotationFromCart()">💾 Save Current Cart as Quotation</button>
+ </div>
+ <div class="panel">
+  <h3>Saved Quotations</h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>QID</th><th>Date</th><th>Customer</th><th>Total</th><th>Actions</th></tr></thead>
+   <tbody id="quotationTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- BARCODE LABELS -->
+<section id="barcodes" class="page">
+ <h2>Barcode Sticker Generator</h2>
+ <div class="panel">
+  <div class="form-grid">
+   <div><label>Select Product</label><select id="barcodeProductSelect"></select></div>
+   <div><label>Number of Stickers</label><input id="barcodeCount" type="number" min="1" max="100" value="4"></div>
+  </div>
+  <button class="btn primary" onclick="generateBarcodes()">Generate Stickers</button>
+  <button class="btn dark" onclick="printBarcodes()">🖨️ Print Stickers</button>
+  <div id="barcodePreview" class="barcode-grid"></div>
+ </div>
+</section>
+
+<!-- WARRANTY -->
+<section id="warranty" class="page">
+ <h2>Warranty & Serial Number Verification</h2>
+ <div class="panel">
+  <label>Enter Product Serial Number or Invoice ID</label>
+  <div style="display:flex;gap:10px">
+   <input id="warrantyQuery" placeholder="e.g. SN1001 or INV-170000..." style="margin:0">
+   <button class="btn primary" style="margin:0;white-space:nowrap" onclick="checkWarranty()">🔍 Verify Warranty</button>
+  </div>
+  <div id="warrantyResult" style="margin-top:18px"></div>
+ </div>
+</section>
+
+<!-- POS TERMINAL -->
+<section id="terminal" class="page">
+ <div class="terminal-grid">
+  <div>
+   <div class="scanner-box">
+    <label style="color:#1d4ed8">🔫 BARCODE SCANNER INPUT (Scan SKU & Press Enter)</label>
+    <input id="barcodeScannerInput" placeholder="Click here & scan barcode..." onkeydown="handleBarcodeScan(event)">
+   </div>
+   <div class="panel">
+    <h3>Customer Details</h3>
+    <div class="form-grid">
+     <div>
+      <label>Select Customer (Required for Credit)</label>
+      <select id="saleCustomerSelect" onchange="fillCustomerDetails()"><option value="">-- Walk-in Customer --</option></select>
+     </div>
+     <div><label>Customer Name</label><input id="saleCustomer" placeholder="Walk-in Customer"></div>
+     <div><label>Phone</label><input id="salePhone" placeholder="Phone number"></div>
+    </div>
+   </div>
+   <div class="panel">
+    <h3>Select Product Manually</h3>
+    <input id="saleSearch" placeholder="Search product name or SKU..." oninput="renderSaleProducts()">
+    <div class="table-wrap"><table>
+     <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Qty</th><th>Add</th></tr></thead>
+     <tbody id="saleProductTable"></tbody>
+    </table></div>
+   </div>
+  </div>
+
+  <div class="panel">
+   <h3>🛒 Shopping Cart</h3>
+   <div class="table-wrap"><table>
+    <thead><tr><th>Item</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr></thead>
+    <tbody id="cartTable"></tbody>
+   </table></div>
+   <div class="form-grid" style="margin-top:10px">
+    <div><label>Discount (Rs.)</label><input id="discount" type="number" min="0" value="0" oninput="renderCart()"></div>
+    <div><label>Tax / VAT (%)</label><input id="taxRate" type="number" min="0" max="100" value="0" oninput="renderCart()"></div>
+   </div>
+   <div style="text-align:right;font-size:13px;color:#475569">
+    Subtotal: Rs. <span id="cartSubtotal">0.00</span> | Tax: Rs. <span id="cartTax">0.00</span>
+   </div>
+   <div class="cart-total">Total: Rs. <span id="cartTotal">0.00</span></div>
+   <div class="form-grid">
+    <div>
+     <label>Payment Method</label>
+     <select id="paymentType" onchange="toggleSplitPayment()">
+      <option value="Cash">Cash</option>
+      <option value="Card">Card</option>
+      <option value="Bank Transfer">Bank Transfer</option>
+      <option value="Split">Split (Cash + Card/Bank)</option>
+      <option value="Credit">Credit (Customer Due)</option>
+     </select>
+    </div>
+    <div>
+     <label>Print Method</label>
+     <select id="printFormat">
+      <option value="bt">Bluetooth Direct (ESC/POS)</option>
+      <option value="thermal">Browser Thermal (80mm)</option>
+      <option value="a4">Standard A4 Invoice</option>
+      <option value="none">No Print</option>
+     </select>
+    </div>
+   </div>
+
+   <div id="splitPaymentBox" style="display:none;background:#f8fafc;padding:10px;border-radius:6px;border:1px solid #cbd5e1;margin-bottom:10px">
+    <div class="form-grid" style="margin:0">
+     <div><label>Cash Amount (Rs.)</label><input id="splitCash" type="number" min="0" value="0"></div>
+     <div><label>Card / Bank Amount (Rs.)</label><input id="splitCard" type="number" min="0" value="0"></div>
+    </div>
+   </div>
+
+   <div id="singlePaymentBox">
+    <label>Cash Received / Advance Paid (Rs.)</label>
+    <input id="cashReceived" type="number" min="0" value="0">
+   </div>
+
+   <button class="btn success" style="width:100%;padding:14px;font-size:15px" onclick="completeSale()">✅ COMPLETE SALE</button>
+   <button class="btn secondary" style="width:100%;margin-top:6px" onclick="clearCart()">Clear Cart</button>
+  </div>
+ </div>
+</section>
+
+<!-- SALES HISTORY -->
+<section id="history" class="page">
+ <h2>Sales History</h2>
+ <div class="panel">
+  <input id="historySearch" placeholder="Search by invoice ID, customer, or serial number..." oninput="renderHistory()">
+  <div class="table-wrap"><table>
+   <thead><tr><th>Invoice</th><th>Date</th><th>Customer</th><th>Payment</th><th>Total</th><th class="admin-only">Profit</th><th>Print</th></tr></thead>
+   <tbody id="historyTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- PROFIT REPORTS -->
+<section id="reports" class="page">
+ <h2>Profit & Financial Reports</h2>
+ <div class="cards">
+  <div class="card"><p>Total Sales Revenue</p><h2 id="reportRevenue">Rs. 0</h2></div>
+  <div class="card"><p>Total Product Cost</p><h2 id="reportCost" style="color:#64748b">Rs. 0</h2></div>
+  <div class="card"><p>Shop Expenses</p><h2 id="reportExpenses" style="color:#f59e0b">Rs. 0</h2></div>
+  <div class="card"><p>Net Profit</p><h2 id="reportProfit" style="color:#16a34a">Rs. 0</h2></div>
+ </div>
+ <div class="panel">
+  <h3>Detailed Sales Breakdown</h3>
+  <div class="table-wrap"><table>
+   <thead><tr><th>Date</th><th>Invoice</th><th>Customer</th><th>Tax</th><th>Total</th><th>Gross Profit</th></tr></thead>
+   <tbody id="reportTable"></tbody>
+  </table></div>
+ </div>
+</section>
+
+<!-- SETTINGS & LOGO -->
+<section id="settings" class="page">
+ <h2>Shop Settings & Logo Branding</h2>
+ <div class="panel">
+  <h3>Store Information</h3>
+  <div class="form-grid">
+   <div><label>Shop Name</label><input id="settingShopName" placeholder="Tech Store POS"></div>
+   <div><label>Shop Logo URL / Image link</label><input id="settingShopLogo" placeholder="https://example.com/logo.png"></div>
+  </div>
+  <button class="btn primary" onclick="saveSettings()">Save Settings</button>
+ </div>
+ <div class="panel">
+  <h3>📊 Export Data / Backup</h3>
+  <button class="btn success" onclick="exportCSV('products')">Download Products CSV</button>
+  <button class="btn primary" onclick="exportCSV('sales')">Download Sales CSV</button>
+  <button class="btn dark" onclick="downloadBackup()">Download Full Backup (.json)</button>
+ </div>
+</section>
+
+<!-- BACKUP & CSV -->
+<section id="backup" class="page">
+ <h2>Data Backup & Restore</h2>
+ <div class="panel">
+  <label>Restore from Backup File (.json)</label>
+  <input type="file" id="restoreFile" accept=".json">
+  <button class="btn warning" onclick="restoreBackup()">⬆️ Restore Data</button>
+ </div>
+</section>
+
+<div id="printArea" class="invoice"></div>
+</main>
+
+<script>
+const load=(key)=>JSON.parse(localStorage.getItem(key)||"[]");
+const save=(key,data)=>localStorage.setItem(key,JSON.stringify(data));
+let products=load("tech_products");
+let sales=load("tech_sales");
+let customers=load("tech_customers");
+let suppliers=load("tech_suppliers");
+let expenses=load("tech_expenses");
+let quotations=load("tech_quotations");
+let debtPayments=load("tech_debt_payments");
+let settings=JSON.parse(localStorage.getItem("tech_settings"))||{shopName:"TECH STORE POS PRO+",shopLogo:""};
+let cart=[];
+let btCharacteristic=null;
+
+function money(n){return Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+function applySettings(){
+ document.getElementById("headerShopName").textContent=settings.shopName;
+ document.getElementById("settingShopName").value=settings.shopName;
+ document.getElementById("settingShopLogo").value=settings.shopLogo;
+ const img=document.getElementById("headerLogoImg");
+ if(settings.shopLogo){img.src=settings.shopLogo;img.style.display="block";}else{img.style.display="none";}
+}
+function saveSettings(){
+ settings.shopName=document.getElementById("settingShopName").value.trim()||"TECH STORE POS";
+ settings.shopLogo=document.getElementById("settingShopLogo").value.trim();
+ localStorage.setItem("tech_settings",JSON.stringify(settings));
+ applySettings();
+ alert("Settings saved successfully!");
+}
+
+function changeRole(){
+ document.body.className=document.getElementById("userRole").value==="cashier"?"role-cashier":"";
+}
+
+function page(id,btn){
+ document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+ document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+ if(btn) btn.classList.add("active");
+ refresh();
+ if(id==="terminal") setTimeout(()=>document.getElementById("barcodeScannerInput").focus(),100);
+}
+
+function refresh(){
+ applySettings();
+ renderDashboard();renderProducts();renderSuppliers();renderCustomers();renderExpenses();renderQuotations();renderSaleProducts();renderCart();renderHistory();renderReports();populateDropdowns();
+}
+
+function populateDropdowns(){
+ const bSel=document.getElementById("barcodeProductSelect");
+ if(bSel) bSel.innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)} (${esc(p.sku)}) - Rs. ${money(p.price)}</option>`).join("");
+ const poProd=document.getElementById("poProduct");
+ if(poProd) poProd.innerHTML=products.map(p=>`<option value="${p.id}">${esc(p.name)} (Stock: ${p.stock})</option>`).join("");
+ const poSup=document.getElementById("poSupplier");
+ if(poSup) poSup.innerHTML=suppliers.map(s=>`<option value="${s.id}">${esc(s.name)}</option>`).join("");
+ const cSel=document.getElementById("saleCustomerSelect");
+ if(cSel) cSel.innerHTML=`<option value="">-- Walk-in Customer --</option>`+customers.map(c=>`<option value="${c.id}">${esc(c.name)} (${esc(c.phone)})</option>`).join("");
+}
+
+function toggleSplitPayment(){
+ const val=document.getElementById("paymentType").value;
+ document.getElementById("splitPaymentBox").style.display=val==="Split"?"block":"none";
+ document.getElementById("singlePaymentBox").style.display=val==="Split"?"none":"block";
+}
+
+/* WEB BLUETOOTH ESC/POS PRINTING */
+async function connectBluetoothPrinter(){
+ try{
+  if(!navigator.bluetooth){alert("Web Bluetooth not supported in this browser.");return}
+  const device=await navigator.bluetooth.requestDevice({
+   acceptAllDevices:true,
+   optionalServices:['000018f0-0000-1000-8000-00805f9b34fb','e7810a71-73ae-499d-8c15-faa9aef0c3f2']
+  });
+  const server=await device.gatt.connect();
+  const services=await server.getPrimaryServices();
+  for(const service of services){
+   const chars=await service.getCharacteristics();
+   for(const c of chars){
+    if(c.properties.write||c.properties.writeWithoutResponse){
+     btCharacteristic=c;
+     const btn=document.getElementById("btConnectBtn");
+     btn.textContent="🟢 BT Connected";
+     btn.classList.add("connected");
+     alert("Bluetooth Printer Connected: "+device.name);
+     return;
+    }
+   }
+  }
+  alert("No writable print characteristic found.");
+ }catch(err){alert("Bluetooth Connection Failed: "+err.message);}
+}
+
+async function printBluetoothReceipt(s){
+ if(!btCharacteristic){printInvoice(s,"thermal");return;}
+ try{
+  const enc=new TextEncoder();
+  let txt="\x1B\x40\x1B\x61\x01";
+  txt+=`\x1B\x21\x30${settings.shopName}\n\x1B\x21\x00`;
+  txt+="--------------------------------\n\x1B\x61\x00";
+  txt+=`Inv : ${s.id}\nDate: ${new Date(s.date).toLocaleString()}\nCust: ${s.customer}\n`;
+  txt+="--------------------------------\n";
+  s.items.forEach(x=>{
+   txt+=`${x.name}\n  ${x.qty} x ${money(x.price)} = ${money(x.price*x.qty)}\n`;
+   if(x.serials?.length) txt+=`  SN: ${x.serials.join(",")}\n`;
+  });
+  txt+="--------------------------------\n";
+  txt+=`Subtotal : Rs. ${money(s.subtotal)}\n`;
+  if(s.discount>0) txt+=`Discount : Rs. ${money(s.discount)}\n`;
+  if(s.tax>0) txt+=`Tax/VAT  : Rs. ${money(s.tax)}\n`;
+  txt+=`\x1B\x21\x10TOTAL    : Rs. ${money(s.total)}\n\x1B\x21\x00`;
+  txt+=`Payment  : ${s.payment}\n`;
+  if(s.payment==="Split") txt+=`Cash: ${money(s.cash)} | Card/Bank: ${money(s.card)}\n`;
+  txt+="--------------------------------\n\x1B\x61\x01Thank You! Come Again.\n\n\n\n";
+  const bytes=enc.encode(txt);
+  for(let i=0;i<bytes.length;i+=100){await btCharacteristic.writeValue(bytes.slice(i,i+100));}
+ }catch(err){alert("BT print error: "+err.message);}
+}
+
+/* PRODUCTS */
+function clearProductForm(){
+ ["editProductId","pName","pBrand","pModel","pSKU","pCost","pPrice","pStock","pSerials"].forEach(id=>document.getElementById(id).value="");
+ document.getElementById("pWarranty").value=12;
+}
+function saveProduct(){
+ const id=document.getElementById("editProductId").value;
+ const name=document.getElementById("pName").value.trim();
+ const price=Number(document.getElementById("pPrice").value);
+ const stock=Number(document.getElementById("pStock").value);
+ if(!name||price<0||!Number.isFinite(price)||stock<0||!Number.isFinite(stock)){alert("Please enter valid product details.");return}
+ const old=products.find(p=>p.id===id);
+ let sku=document.getElementById("pSKU").value.trim();
+ if(!sku) sku="SKU"+Math.floor(100000+Math.random()*900000);
+ const product={
+  id:id||Date.now().toString(),name,
+  brand:document.getElementById("pBrand").value.trim(),
+  model:document.getElementById("pModel").value.trim(),
+  category:document.getElementById("pCategory").value,
+  sku,
+  cost:Number(document.getElementById("pCost").value)||0,
+  price,stock,
+  warranty:Number(document.getElementById("pWarranty").value)||0,
+  serials:document.getElementById("pSerials").value.split("\n").map(s=>s.trim()).filter(Boolean),
+  soldSerials:old?.soldSerials||[]
+ };
+ if(id)products=products.map(p=>p.id===id?product:p);
+ else products.push(product);
+ save("tech_products",products);clearProductForm();refresh();alert("Product saved successfully!");
+}
+function editProduct(id){
+ const p=products.find(x=>x.id===id);if(!p)return;
+ document.getElementById("editProductId").value=p.id;
+ document.getElementById("pName").value=p.name;
+ document.getElementById("pBrand").value=p.brand;
+ document.getElementById("pModel").value=p.model;
+ document.getElementById("pCategory").value=p.category;
+ document.getElementById("pSKU").value=p.sku;
+ document.getElementById("pCost").value=p.cost;
+ document.getElementById("pPrice").value=p.price;
+ document.getElementById("pStock").value=p.stock;
+ document.getElementById("pWarranty").value=p.warranty;
+ document.getElementById("pSerials").value=p.serials.join("\n");
+ window.scrollTo(0,0);
+}
+function deleteProduct(id){
+ if(!confirm("Delete this product?"))return;
+ products=products.filter(p=>p.id!==id);save("tech_products",products);refresh();
+}
+function renderProducts(){
+ const q=(document.getElementById("productSearch")?.value||"").toLowerCase();
+ document.getElementById("productTable").innerHTML=products.filter(p=>(p.name+" "+p.brand+" "+p.model+" "+p.sku).toLowerCase().includes(q)).map(p=>`
+ <tr><td><b>${esc(p.name)}</b></td><td>${esc(p.brand)} ${esc(p.model)}</td><td><span class="tag">${esc(p.sku)}</span></td><td class="admin-only">Rs. ${money(p.cost)}</td><td>Rs. ${money(p.price)}</td><td class="${p.stock<=3?'low':''}">${p.stock}</td><td>${p.warranty} mos</td>
+ <td class="admin-only"><button class="btn primary" onclick="editProduct('${p.id}')">Edit</button><button class="btn danger" onclick="deleteProduct('${p.id}')">Delete</button></td></tr>`).join("");
+}
+
+/* SUPPLIERS */
+function addSupplier(){
+ const name=document.getElementById("supName").value.trim();
+ if(!name){alert("Enter supplier name");return}
+ suppliers.push({id:Date.now().toString(),name,phone:document.getElementById("supPhone").value.trim(),address:document.getElementById("supAddress").value.trim(),due:0});
+ save("tech_suppliers",suppliers);
+ ["supName","supPhone","supAddress"].forEach(id=>document.getElementById(id).value="");
+ refresh();
+}
+function recordPurchase(){
+ const supId=document.getElementById("poSupplier").value;
+ const prodId=document.getElementById("poProduct").value;
+ const qty=Number(document.getElementById("poQty").value);
+ const unitCost=Number(document.getElementById("poUnitCost").value);
+ const paid=Number(document.getElementById("poPaid").value)||0;
+ if(!supId||!prodId||qty<=0||unitCost<0){alert("Fill valid purchase details.");return}
+ const sup=suppliers.find(s=>s.id===supId);
+ const prod=products.find(p=>p.id===prodId);
+ prod.stock+=qty;
+ if(unitCost>0) prod.cost=unitCost;
+ sup.due=(sup.due||0)+Math.max(0,(qty*unitCost)-paid);
+ save("tech_products",products);save("tech_suppliers",suppliers);
+ refresh();alert("Stock added successfully!");
+}
+function paySupplierDue(id){
+ const sup=suppliers.find(s=>s.id===id);if(!sup)return;
+ const amt=Number(prompt(`Enter payment amount to ${sup.name} (Due: Rs. ${money(sup.due)}):`));
+ if(amt>0){sup.due=Math.max(0,sup.due-amt);save("tech_suppliers",suppliers);refresh();}
+}
+function renderSuppliers(){
+ document.getElementById("supplierTable").innerHTML=suppliers.map(s=>`
+ <tr><td><b>${esc(s.name)}</b></td><td>${esc(s.phone)}</td><td>${esc(s.address)}</td><td class="${s.due>0?'low':''}">Rs. ${money(s.due||0)}</td>
+ <td><button class="btn success" onclick="paySupplierDue('${s.id}')">Pay Due</button></td></tr>`).join("");
+}
+
+/* CUSTOMERS */
+function fillCustomerDetails(){
+ const id=document.getElementById("saleCustomerSelect").value;
+ const c=customers.find(x=>x.id===id);
+ document.getElementById("saleCustomer").value=c?c.name:"";
+ document.getElementById("salePhone").value=c?c.phone:"";
+}
+function addCustomer(){
+ const name=document.getElementById("cName").value.trim();
+ if(!name){alert("Enter customer name");return}
+ customers.push({id:Date.now().toString(),name,phone:document.getElementById("cPhone").value.trim(),address:document.getElementById("cAddress").value.trim(),creditDue:0});
+ save("tech_customers",customers);
+ ["cName","cPhone","cAddress"].forEach(id=>document.getElementById(id).value="");
+ refresh();
+}
+function settleCustomerCredit(id){
+ const c=customers.find(x=>x.id===id);if(!c)return;
+ const amt=Number(prompt(`Enter amount received from ${c.name} (Due: Rs. ${money(c.creditDue||0)}):`));
+ if(amt>0){
+  c.creditDue=Math.max(0,c.creditDue-amt);
+  debtPayments.push({id:Date.now().toString(),customerId:c.id,customerName:c.name,amount:amt,date:new Date().toISOString()});
+  save("tech_customers",customers);save("tech_debt_payments",debtPayments);refresh();
+ }
+}
+function renderCustomers(){
+ document.getElementById("customerTable").innerHTML=customers.map(c=>`
+ <tr><td><b>${esc(c.name)}</b></td><td>${esc(c.phone)}</td><td>${esc(c.address)}</td><td class="${(c.creditDue||0)>0?'low':''}">Rs. ${money(c.creditDue||0)}</td>
+ <td><button class="btn success" onclick="settleCustomerCredit('${c.id}')">Settle Due</button> <button class="btn danger admin-only" onclick="deleteCustomer('${c.id}')">Delete</button></td></tr>`).join("");
+}
+function deleteCustomer(id){
+ if(!confirm("Delete customer?"))return;
+ customers=customers.filter(c=>c.id!==id);save("tech_customers",customers);refresh();
+}
+
+/* EXPENSES */
+function addExpense(){
+ const desc=document.getElementById("expDesc").value.trim();
+ const amount=Number(document.getElementById("expAmount").value);
+ if(!desc||amount<=0){alert("Enter valid expense details.");return}
+ expenses.unshift({id:Date.now().toString(),desc,category:document.getElementById("expCat").value,amount,date:new Date().toISOString()});
+ save("tech_expenses",expenses);
+ document.getElementById("expDesc").value="";document.getElementById("expAmount").value="";
+ refresh();
+}
+function deleteExpense(id){
+ if(!confirm("Delete expense?"))return;
+ expenses=expenses.filter(e=>e.id!==id);save("tech_expenses",expenses);refresh();
+}
+function renderExpenses(){
+ const todayStr=new Date().toDateString();
+ const todayCash=sales.filter(s=>new Date(s.date).toDateString()===todayStr).reduce((a,s)=>a+(s.payment==="Cash"?s.total:(s.payment==="Split"?s.cash:0)),0);
+ const todayDebt=debtPayments.filter(d=>new Date(d.date).toDateString()===todayStr).reduce((a,d)=>a+d.amount,0);
+ const todayExp=expenses.filter(e=>new Date(e.date).toDateString()===todayStr).reduce((a,e)=>a+e.amount,0);
+ document.getElementById("todayCashSales").textContent="Rs. "+money(todayCash);
+ document.getElementById("todayDebtCollected").textContent="Rs. "+money(todayDebt);
+ document.getElementById("todayExpenses").textContent="Rs. "+money(todayExp);
+ document.getElementById("expectedCashDrawer").textContent="Rs. "+money(todayCash+todayDebt-todayExp);
+
+ document.getElementById("expenseTable").innerHTML=expenses.map(e=>`
+ <tr><td>${new Date(e.date).toLocaleString()}</td><td>${esc(e.desc)}</td><td><span class="tag">${esc(e.category)}</span></td><td>Rs. ${money(e.amount)}</td>
+ <td class="admin-only"><button class="btn danger" onclick="deleteExpense('${e.id}')">Delete</button></td></tr>`).join("");
+}
+
+/* QUOTATIONS */
+function saveQuotationFromCart(){
+ if(!cart.length){alert("Cart is empty");return}
+ const q={
+  id:"QUT-"+Date.now(),date:new Date().toISOString(),
+  customer:document.getElementById("qCustName").value.trim()||"Valued Customer",
+  phone:document.getElementById("qCustPhone").value.trim(),
+  validDays:Number(document.getElementById("qValidDays").value)||7,
+  items:[...cart],
+  total:cart.reduce((s,x)=>s+x.price*x.qty,0)
+ };
+ quotations.unshift(q);
+ save("tech_quotations",quotations);
+ alert("Quotation saved successfully!");
+ renderQuotations();
+}
+function loadQuotationToCart(id){
+ const q=quotations.find(x=>x.id===id);if(!q)return;
+ cart=q.items.map(x=>({...x}));
+ page('terminal');
+ renderCart();
+}
+function renderQuotations(){
+ document.getElementById("quotationTable").innerHTML=quotations.map(q=>`
+ <tr><td>${esc(q.id)}</td><td>${new Date(q.date).toLocaleDateString()}</td><td>${esc(q.customer)}</td><td>Rs. ${money(q.total)}</td>
+ <td><button class="btn primary" onclick="loadQuotationToCart('${q.id}')">Load to POS</button> <button class="btn danger" onclick="quotations=quotations.filter(x=>x.id!=='${q.id}');save('tech_quotations',quotations);renderQuotations()">Delete</button></td></tr>`).join("");
+}
+
+/* BARCODES & WARRANTY */
+function generateBarcodes(){
+ const id=document.getElementById("barcodeProductSelect").value;
+ const count=Number(document.getElementById("barcodeCount").value)||1;
+ const p=products.find(x=>x.id===id);
+ if(!p){alert("Select product.");return}
+ const container=document.getElementById("barcodePreview");
+ container.innerHTML="";
+ for(let i=0;i<count;i++){
+  const div=document.createElement("div");
+  div.className="barcode-card";
+  div.innerHTML=`<div style="font-weight:bold;font-size:12px">${esc(p.name)}</div><svg id="bc_${i}"></svg><div style="font-weight:bold;font-size:13px">Rs. ${money(p.price)}</div>`;
+  container.appendChild(div);
+  JsBarcode(`#bc_${i}`,p.sku,{format:"CODE128",width:1.5,height:42,displayValue:true,fontSize:11});
+ }
+}
+function printBarcodes(){
+ const content=document.getElementById("barcodePreview").innerHTML;
+ if(!content){alert("Generate first.");return}
+ document.getElementById("printArea").innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">${content}</div>`;
+ window.print();
+}
+function checkWarranty(){
+ const q=document.getElementById("warrantyQuery").value.trim().toLowerCase();
+ const resBox=document.getElementById("warrantyResult");
+ if(!q){resBox.innerHTML="";return}
+ let foundHTML="";
+ sales.forEach(s=>{
+  s.items.forEach(item=>{
+   if((item.serials&&item.serials.some(sn=>sn.toLowerCase()===q))||s.id.toLowerCase()===q){
+    const saleDate=new Date(s.date);
+    const months=item.warranty||0;
+    const expiryDate=new Date(saleDate);expiryDate.setMonth(expiryDate.getMonth()+months);
+    const isValid=new Date()<=expiryDate&&months>0;
+    foundHTML+=`<div style="border:1px solid #cbd5e1;padding:14px;border-radius:8px;margin-bottom:10px;background:#f8fafc">
+     <h4 style="margin:0 0 6px">${esc(item.name)} <span class="tag ${isValid?'tag-valid':'tag-expired'}">${months===0?'No Warranty':(isValid?'VALID':'EXPIRED')}</span></h4>
+     <p style="margin:3px 0;font-size:13px"><b>Invoice:</b> ${esc(s.id)} | <b>Customer:</b> ${esc(s.customer)}</p>
+     <p style="margin:3px 0;font-size:13px"><b>Valid Until:</b> ${months>0?expiryDate.toLocaleDateString():'N/A'}</p>
+     ${item.serials?.length?`<p style="margin:3px 0;font-size:13px"><b>Serials:</b> ${item.serials.map(esc).join(", ")}</p>`:""}
+    </div>`;
+   }
+  });
+ });
+ resBox.innerHTML=foundHTML||`<div class="alert">No warranty record found.</div>`;
+}
+
+/* POS TERMINAL */
+function handleBarcodeScan(e){
+ if(e.key==="Enter"){
+  e.preventDefault();
+  const code=e.target.value.trim().toLowerCase();
+  const p=products.find(x=>x.sku.toLowerCase()===code);
+  if(p){addDirectToCart(p.id,1);e.target.value="";}
+  else{alert("Barcode not found.");e.target.select();}
+ }
+}
+function renderSaleProducts(){
+ const q=(document.getElementById("saleSearch")?.value||"").toLowerCase();
+ document.getElementById("saleProductTable").innerHTML=products.filter(p=>(p.name+" "+p.brand+" "+p.model+" "+p.sku).toLowerCase().includes(q)).map(p=>`
+ <tr><td><b>${esc(p.name)}</b><br><small>${esc(p.sku)}</small></td><td>Rs. ${money(p.price)}</td><td>${p.stock}</td><td><input id="qty_${p.id}" type="number" min="1" max="${p.stock}" value="1" style="width:55px;margin:0"></td><td><button class="btn primary" onclick="addToCart('${p.id}')">Add</button></td></tr>`).join("");
+}
+function addToCart(id){addDirectToCart(id,Number(document.getElementById("qty_"+id).value))}
+function addDirectToCart(id,qty){
+ const p=products.find(x=>x.id===id);if(!p||p.stock<=0){alert("Out of stock");return}
+ const existing=cart.find(x=>x.id===id);
+ if(existing){if(existing.qty+qty>p.stock){alert("Not enough stock");return} existing.qty+=qty;}
+ else cart.push({id:p.id,name:p.name,price:p.price,cost:p.cost,warranty:p.warranty||0,qty,serials:[]});
+ renderCart();
+}
+function removeCart(id){cart=cart.filter(x=>x.id!==id);renderCart()}
+function clearCart(){cart=[];renderCart()}
+function renderCart(){
+ document.getElementById("cartTable").innerHTML=cart.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.qty}</td><td>${money(x.price)}</td><td>${money(x.price*x.qty)}</td><td><button class="btn danger" style="padding:3px 7px" onclick="removeCart('${x.id}')">×</button></td></tr>`).join("");
+ const subtotal=cart.reduce((s,x)=>s+x.price*x.qty,0);
+ const discount=Math.max(0,Number(document.getElementById("discount")?.value)||0);
+ const afterDisc=Math.max(0,subtotal-discount);
+ const tax=afterDisc*(Math.max(0,Number(document.getElementById("taxRate")?.value)||0)/100);
+ document.getElementById("cartSubtotal").textContent=money(subtotal);
+ document.getElementById("cartTax").textContent=money(tax);
+ document.getElementById("cartTotal").textContent=money(afterDisc+tax);
+}
+
+function completeSale(){
+ if(!cart.length){alert("Cart is empty");return}
+ const payment=document.getElementById("paymentType").value;
+ const custId=document.getElementById("saleCustomerSelect").value;
+ if(payment==="Credit"&&!custId){alert("Select customer for Credit sale.");return}
+ const subtotal=cart.reduce((s,x)=>s+x.price*x.qty,0);
+ const discount=Math.max(0,Number(document.getElementById("discount").value)||0);
+ const tax=(subtotal-discount)*(Math.max(0,Number(document.getElementById("taxRate").value)||0)/100);
+ const total=(subtotal-discount)+tax;
+
+ let cash=Number(document.getElementById("cashReceived").value)||0;
+ let cardAmt=0;
+ if(payment==="Split"){
+  cash=Number(document.getElementById("splitCash").value)||0;
+  cardAmt=Number(document.getElementById("splitCard").value)||0;
+  if(cash+cardAmt<total){alert("Split payment total is less than bill total!");return;}
+ }
+
+ if(payment==="Credit"&&custId){
+  customers.find(c=>c.id===custId).creditDue=(customers.find(c=>c.id===custId).creditDue||0)+Math.max(0,total-cash);
+  save("tech_customers",customers);
+ }
+
+ const saleItems=cart.map(item=>{
+  const p=products.find(x=>x.id===item.id);
+  let serials=[];
+  if(p.serials.length){serials=p.serials.filter(s=>!p.soldSerials.includes(s)).slice(0,item.qty);p.soldSerials.push(...serials);}
+  p.stock-=item.qty;
+  return {...item,serials};
+ });
+
+ const sale={
+  id:"INV-"+Date.now(),date:new Date().toISOString(),
+  customer:document.getElementById("saleCustomer").value.trim()||"Walk-in Customer",
+  phone:document.getElementById("salePhone").value.trim(),
+  items:saleItems,subtotal,discount,tax,total,payment,cash,card:cardAmt,
+  profit:saleItems.reduce((s,x)=>s+(x.price-x.cost)*x.qty,0)-discount
+ };
+ sales.unshift(sale);
+ save("tech_products",products);save("tech_sales",sales);
+
+ const format=document.getElementById("printFormat").value;
+ if(format==="bt") printBluetoothReceipt(sale);
+ else if(format!=="none") printInvoice(sale,format);
+
+ cart=[];document.getElementById("discount").value=0;document.getElementById("cashReceived").value=0;
+ document.getElementById("saleCustomer").value="";document.getElementById("salePhone").value="";document.getElementById("saleCustomerSelect").value="";
+ refresh();
+}
+
+function printInvoice(s,format="a4"){
+ const area=document.getElementById("printArea");
+ if(format==="thermal"){
+  const rows=s.items.map(x=>`<tr><td colspan="3"><b>${esc(x.name)}</b></td></tr><tr><td>${x.qty} x ${money(x.price)}</td><td></td><td style="text-align:right">${money(x.price*x.qty)}</td></tr>`).join("");
+  area.innerHTML=`<div style="font-family:monospace;width:280px;margin:auto;font-size:12px;color:#000">
+   <center><h3 style="margin:0">${settings.shopName}</h3></center>
+   <hr style="border-top:1px dashed #000">
+   <div>Inv: ${esc(s.id)}<br>Date: ${new Date(s.date).toLocaleString()}<br>Cust: ${esc(s.customer)}</div>
+   <hr style="border-top:1px dashed #000">
+   <table style="width:100%;font-size:12px">${rows}</table>
+   <hr style="border-top:1px dashed #000">
+   <div style="text-align:right">Total: Rs. ${money(s.total)}</div>
+   <center><p>Thank You!</p></center>
+  </div>`;
+ }else{
+  const rows=s.items.map(x=>`<tr><td>${esc(x.name)}</td><td>${x.qty}</td><td>Rs. ${money(x.price)}</td><td>Rs. ${money(x.price*x.qty)}</td></tr>`).join("");
+  area.innerHTML=`<div style="font-family:Arial;max-width:720px;margin:auto">
+   <center><h2>${settings.shopName}</h2><h3>INVOICE</h3></center>
+   <hr><p><b>Invoice:</b> ${esc(s.id)}<br><b>Customer:</b> ${esc(s.customer)}</p>
+   <table style="width:100%;border-collapse:collapse" border="1" cellpadding="6"><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th></tr>${rows}</table>
+   <h3 style="text-align:right">Total: Rs. ${money(s.total)}</h3>
+  </div>`;
+ }
+ window.print();
+}
+
+function renderHistory(){
+ const q=(document.getElementById("historySearch")?.value||"").toLowerCase();
+ document.getElementById("historyTable").innerHTML=sales.filter(s=>(s.id+" "+s.customer).toLowerCase().includes(q)).map(s=>`
+ <tr><td>${esc(s.id)}</td><td>${new Date(s.date).toLocaleString()}</td><td>${esc(s.customer)}</td><td>${esc(s.payment)}</td><td>Rs. ${money(s.total)}</td><td class="admin-only">Rs. ${money(s.profit)}</td>
+ <td><button class="btn dark" onclick="reprint('${s.id}','bt')">BT</button><button class="btn primary" onclick="reprint('${s.id}','a4')">A4</button></td></tr>`).join("");
+}
+function reprint(id,format){const s=sales.find(x=>x.id===id);if(s){if(format==="bt")printBluetoothReceipt(s);else printInvoice(s,format);}}
+
+function renderReports(){
+ document.getElementById("reportRevenue").textContent="Rs. "+money(sales.reduce((a,s)=>a+s.total,0));
+ document.getElementById("reportCost").textContent="Rs. "+money(sales.reduce((a,s)=>a+s.items.reduce((b,x)=>b+x.cost*x.qty,0),0));
+ document.getElementById("reportExpenses").textContent="Rs. "+money(expenses.reduce((a,e)=>a+e.amount,0));
+ document.getElementById("reportProfit").textContent="Rs. "+money(sales.reduce((a,s)=>a+s.profit,0)-expenses.reduce((a,e)=>a+e.amount,0));
+ document.getElementById("reportTable").innerHTML=sales.map(s=>`<tr><td>${new Date(s.date).toLocaleDateString()}</td><td>${esc(s.id)}</td><td>${esc(s.customer)}</td><td>Rs. ${money(s.tax)}</td><td>Rs. ${money(s.total)}</td><td>Rs. ${money(s.profit)}</td></tr>`).join("");
+}
+
+function renderDashboard(){
+ document.getElementById("totalProducts").textContent=products.length;
+ document.getElementById("totalSales").textContent="Rs. "+money(sales.reduce((a,s)=>a+s.total,0));
+ document.getElementById("totalCustomerDues").textContent="Rs. "+money(customers.reduce((a,c)=>a+(c.creditDue||0),0));
+ document.getElementById("totalExpensesCard").textContent="Rs. "+money(expenses.reduce((a,e)=>a+e.amount,0));
+ document.getElementById("totalProfit").textContent="Rs. "+money(sales.reduce((a,s)=>a+s.profit,0)-expenses.reduce((a,e)=>a+e.amount,0));
+ 
+ const alerts=products.filter(p=>p.stock<=3);
+ document.getElementById("stockAlerts").innerHTML=alerts.length?alerts.map(p=>`<div class="alert">⚠️ <b>${esc(p.name)}</b> (${esc(p.sku)}) - Only <b>${p.stock}</b> left! <a href="https://api.whatsapp.com/send?text=${encodeURIComponent('Alert: Low stock for ' + p.name + ' (' + p.sku + '). Only ' + p.stock + ' remaining.')}" target="_blank" class="btn success" style="padding:4px 8px;font-size:11px;text-decoration:none">💬 Send WA Alert</a></div>`).join(""):"✅ All stock levels healthy.";
+ document.getElementById("recentSales").innerHTML=sales.slice(0,5).map(s=>`<tr><td>${esc(s.id)}</td><td>${esc(s.customer)}</td><td>${esc(s.payment)}</td><td>${new Date(s.date).toLocaleDateString()}</td><td>Rs. ${money(s.total)}</td></tr>`).join("");
+}
+
+function exportCSV(type){
+ let csv="";
+ if(type==="products") csv="Name,SKU,Price,Stock\n"+products.map(p=>`"${p.name}","${p.sku}",${p.price},${p.stock}`).join("\n");
+ else csv="Invoice,Customer,Total,Profit\n"+sales.map(s=>`"${s.id}","${s.customer}",${s.total},${s.profit}`).join("\n");
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+ a.download=`tech_${type}.csv`;a.click();
+}
+function downloadBackup(){
+ const blob=new Blob([JSON.stringify({products,sales,customers,suppliers,expenses,quotations,settings},null,2)],{type:"application/json"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=`pos_backup.json`;a.click();
+}
+function restoreBackup(){
+ const file=document.getElementById("restoreFile").files[0];if(!file)return;
+ const r=new FileReader();
+ r.onload=function(e){
+  const d=JSON.parse(e.target.result);
+  if(d.products) products=d.products;if(d.sales) sales=d.sales;if(d.customers) customers=d.customers;
+  if(d.suppliers) suppliers=d.suppliers;if(d.expenses) expenses=d.expenses;if(d.quotations) quotations=d.quotations;
+  if(d.settings) settings=d.settings;
+  save("tech_products",products);save("tech_sales",sales);save("tech_customers",customers);
+  save("tech_suppliers",suppliers);save("tech_expenses",expenses);save("tech_quotations",quotations);
+  localStorage.setItem("tech_settings",JSON.stringify(settings));
+  refresh();alert("Restored successfully!");
+ };
+ r.readAsText(file);
+}
+
+document.getElementById("today").textContent=new Date().toLocaleDateString("en-US",{weekday:"short",year:"numeric",month:"short",day:"numeric"});
+refresh();
+</script>
+</body>
+</html>€
